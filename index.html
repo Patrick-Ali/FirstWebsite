@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>CU Mapping Service</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<link rel="stylesheet" type="text/css" href="map2.css">
+	
+	<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+    <script type="text/javascript">
+        window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":"https://1e98b001f04f6ea1efa9b754e3d3be5534a45b99.googledrive.com/host/0B0F9nbWwbfrbS2NYY2ZoX2xXclU","theme":"dark-floating"};
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+    <!-- End Cookie Consent plugin -->
+    
+  </head>
+  
+  <body>
+     
+    <!--This is what is used to let the user choose where they want to start and go-->
+    <div id="floating-panel">
+      <b>Start:</b>
+      <select id="start">
+	  <option value="Current Location">Current</option>
+      <option value="The Hub, Coventry University, Jordan Well, Coventry CV1 5RW">The Hub</option>
+      <option value="52.405134, -1.499744">EC Building (EC)</option>
+      <option value="Coventry University Lanchester Library, Frederick Lanchester Building, Coventry University, Coventry, West Midlands CV1 5DD, United Kingdom">The Library</option>
+      <option value="Liberty Point, West St, Coventry CV1 5EE, United Kingdom">Liberty Point, Student Accommodation</option>
+      <option value="Maurice Foss Bldg, Coventry CV1 5PH, UK">Maurice Foss (MF)</option>
+      <option value="Grove St, Coventry CV1 5PH, UK">Bugatti</option>
+      <option value="George Elliot Building, Coventry CV1 5FB, United Kingdom">George Elliot</option>
+      <option value="Jaguar Bldg, Coventry CV1 5PJ, UK">Jaguar</option>
+      <option value="Priory Hall, UK, Coventry, United Kingdom">Priory Hall, Student Accommodation</option>
+      <option value="52.408393, -1.504748">Charles Ward</option>
+      <option value="William Morris Bldg, Coventry CV1 5DD, UK">William Morris</option>
+      <option value="52.409082, -1.504495">Coventry Sports Center, Exam Hall (CSC)</option>
+    </select>
+    <b>End: </b>
+    <select id="end">
+	  <option value="Current Location">Current</option>
+      <option value="52.407284, -1.504834">The Hub</option>
+      <option value="52.405134, -1.499744">EC Building ("52.405134, -1.499744")</option>
+      <option value="Coventry University Lanchester Library, Frederick Lanchester Building, Coventry University, Coventry, West Midlands CV1 5DD, United Kingdom">The Library</option>
+      <option value="Liberty Point, West St, Coventry CV1 5EE, United Kingdom">Liberty Point, Student Accommodation</option>
+      <option value="Maurice Foss Bldg, Coventry CV1 5PH, UK">Maurice Foss (MF)</option>
+      <option value="Grove St, Coventry CV1 5PH, UK">Bugatti</option>
+      <option value="George Elliot Building, Coventry CV1 5FB, United Kingdom">George Elliot</option>
+      <option value="Jaguar Bldg, Coventry CV1 5PJ, UK">Jaguar</option>
+      <option value="Priory Hall, UK, Coventry, United Kingdom">Priory Hall, Student Accommodation</option>
+      <option value="52.408393, -1.504748">Charles Ward</option>
+      <option value="William Morris Bldg, Coventry CV1 5DD, UK">William Morris</option>
+      <option value="52.409082, -1.504495">Coventry Sports Center, Exam Hall (CSC)</option>
+    </select>
+    </div>
+    
+	<!--This is what is used to let the user choose how they want to travel and what they want to measure their distance in-->
+	<div id="traveling-panel">
+	    <br>
+		<b>Mode of Travel: </b>
+		<select id="mode">
+			<option value="DRIVING">Driving</option>
+			<option value="WALKING">Walking</option>
+			<option value="BICYCLING">Bicycling</option>
+		</select>
+		<b>Miles or Kilometers:</b>
+		<select id="unit">
+		    <option value="IMPERIAL">Miles</option>
+		    <option value="METRIC">Kilometers</option>
+		</select>
+	</div>
+	
+    <div id="right-panel"></div>
+    <div id="map"></div>
+		
+    <script>
+	
+	var mapLatitude;
+	var mapLongitude;
+	var myLatLng;
+	var theHub = {lat: 52.407284, lng: -1.504834};
+	var ECB = {lat: 52.405134, lng: -1.499744};
+	var Libary = {lat:52.406073, lng: -1.500542}
+	
+	//This function will get the users current location
+	function getLocation() {
+		console.log("Location found");
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(showPosition);
+		} else { 
+        x.innerHTML = "Geolocation is not supported by this browser.";
+		}
+	}
+    
+    // This function will use the infromation obtained by 'getLocation' to display the users current location on map
+	function showPosition(position) {
+		mapLatitude = position.coords.latitude; 
+		mapLongitude = position.coords.longitude;
+		myLatLng = new google.maps.LatLng(mapLatitude, mapLongitude)
+		getMap();
+	}
+	
+	  // This function will load the Google Maps API and display the map on screen
+      function getMap() {
+        var directionsDisplay = new google.maps.DirectionsRenderer;
+        var directionsService = new google.maps.DirectionsService;
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 15,
+          center: myLatLng
+        });
+        directionsDisplay.setMap(map);
+        directionsDisplay.setPanel(document.getElementById('right-panel'));
+
+        //This places the start and end pannel on top of the map
+        var control = document.getElementById('floating-panel');
+        control.style.display = 'block';
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(control);
+        
+        //This places the mode of transport and distance pannel on top of the map
+        var controler = document.getElementById('traveling-panel');
+        control.style.display = 'block';
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(controler);
+		
+		//This places a marker at the users current location
+		var marker = new google.maps.Marker({
+			position: myLatLng,
+			map: map,
+			title:"Current Location"
+		});
+		
+		//This holds the information that goes into the marker above the Hub
+		var contentString = '<div id="content">'+
+            '<div id="siteNotice">'+
+            '</div>'+
+            '<h1 id="firstHeading" class="firstHeading">The Hub</h1>'+
+            '<div id="bodyContent">'+
+            '<p>As described by Coventry University:</p>'+
+            '<p><i>"The Hub really is the centre of student campus life the place to gather, meet friends,' +
+            'have a coffee at Costa Coffee, or a meal in the fantastic food court where you can get world cuisine, '+
+            'pizza and pasta, deli, and food-to-go. The Costcutter convenience store is good for essential shopping, '+
+            'and the Students’ Union and Square One provides excellent entertainment from quiz nights to live music."</i></p>'+
+            ' <p>For more information on the Hub please click '+
+            '<a href="http://www.coventry.ac.uk/life-on-campus/the-university/social-and-learning-spaces/the-hub/" target="_blank">HERE</a> (opens link in new tab)</p>'+
+            '<p>'+
+            'Opening Times:'+
+            '    <br>Sunday:    8am–10pm'+
+            '    <br>Monday:    8am–10pm'+
+            '    <br>Tuesday:   8am–10pm'+
+            '    <br>Wednesday: 8am–10pm'+
+            '    <br>Thursday:	8am–10pm'+
+            '    <br>Friday:	8am–10pm'+
+            '    <br>Saturday:	8am–10pm'+
+            '</p>'+
+            '<p>'+
+            'Address:'+
+            '    <br>Coventry University'+
+            '    <br>Jordan Well'+
+            '    <br>Coventry CV1 5RW'+
+            '    <br>United Kingdom'+
+            '</p>'+
+            '<p>For Floor Plans of the Hub please click '+
+            '<a href="https://e69d75eefd8c8e844beb036b34a0e85a864b6261.googledrive.com/host/0B0F9nbWwbfrbR3lRZlIyZTNqMUE" target="_blank">'+
+            '<b>HERE</b></a> (opens link in new tab)</p>'+
+            '</div>'+
+            '</div>';
+		// This is what makes the information window	
+		var infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+		// This places the marker on the map at the chossen location
+		var marker = new google.maps.Marker({
+          position: theHub,
+          map: map,
+          title: 'The Hub'
+        });
+		//This is listening for the click to open the information window
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+        
+        //This holds the information that goes into the marker above the EC Building
+        var informationECB = '<div id="content">'+
+            '<div id="siteNotice">'+
+            '</div>'+
+            '<h1 id="firstHeading" class="firstHeading">Engineering and Computing Building</h1>'+
+            '<div id="bodyContent">'+
+            '<p>As described by Coventry University:</p>'+
+            '<p><i>"This is the newest building on Campus, completed in 2012 and is used solely by our'+ 
+            'Faculty of Engineering, Envrionment & Computing.' +
+            'The £55m project delivered a highly sustainable building that uses a range of technologies '+
+            'including rainwater harvesting, solar thermal energy and biomass boilers. '+
+            'Facilities include a high precision wind-tunnel, a £3m high-performance engineering centre,'+ 
+            'a Harrier Jump Jet, three flight simulators and the UK’s largest magnet."</i></p>'+
+            'Opening Times:'+
+            '    <br>Sunday:    8am–10pm'+
+            '    <br>Monday:    8am–10pm'+
+            '    <br>Tuesday:   8am–10pm'+
+            '    <br>Wednesday: 8am–10pm'+
+            '    <br>Thursday:	8am–10pm'+
+            '    <br>Friday:	8am–10pm'+
+            '    <br>Saturday:	8am–10pm'+
+            '</p>'+
+            '<p>'+
+            'Address:'+
+            '    <br>Coventry University'+
+            '    <br>Engineering and Computing Building'+
+            '    <br>Gulson Rd'+
+            '    <br>Coventry CV1 2JH'+
+            '    <br>United Kingdom'+
+            '</p>'+
+            '<p>For Floor Plans of the Engineering and Computing Building please click '+
+            '<a href="https://f7d9f87e3a225d444fb4cf428ab9c24c88239887.googledrive.com/host/0B0F9nbWwbfrbS3huVmRKeXRGZzA" target="_blank">'+
+            '<b>HERE</b></a> (opens link in new tab)</p>'+
+            '</div>'+
+            '</div>';
+		// This is what makes the information window	
+		var ECBwindow = new google.maps.InfoWindow({
+          content: informationECB
+        });
+		// This places the marker on the map at the chossen location
+		var markerECB = new google.maps.Marker({
+          position: ECB,
+          map: map,
+          title: 'ECB'
+        });
+		//This is listening for the click to open the information window
+        markerECB.addListener('click', function() {
+          ECBwindow.open(map, markerECB);
+        });
+        
+        //This holds the information that goes into the marker above the Libary
+        var informationLibary = '<div id="content">'+
+            '<div id="siteNotice">'+
+            '</div>'+
+            '<h1 id="firstHeading" class="firstHeading">Frederick Lanchester Building (Libary)</h1>'+
+            '<div id="bodyContent">'+
+            '<p>As described by Coventry University:</p>'+
+            '<p><i>"This modern and striking building houses the main University library, and was completed in 2001.'+ 
+            'It has been named after the Coventry based designer of the first British petrol-driven car.' +
+            'With a number of different study zones across 5 floors, it provides an invaluable central study'+ 
+            'and resource space for staff and students. It is equipped with over 350 computers,'+ 
+            'group and individual study rooms, books, journals, and electronic resources."</i></p>'+
+            '<p>For information on the libary please click '+
+            '<a href="http://www.coventry.ac.uk/study-at-coventry/student-support/academic-support/lanchester-library/" target="_blank"><b>Here</b></a> (opens link in new tab)</p>'+
+            '<p>As there is more information at the above link we could fit in here so please give it a look</p>'+ 
+            'Opening Times:'+
+            '    <br>Sunday:    24 Hours'+
+            '    <br>Monday:    24 Hours'+
+            '    <br>Tuesday:   24 Hours'+
+            '    <br>Wednesday: 24 Hours'+
+            '    <br>Thursday:	24 Hours'+
+            '    <br>Friday:	24 Hours'+
+            '    <br>Saturday:	24 Hours'+
+            '</p>'+
+            '<p>'+
+            'Address:'+
+            '    <br>Coventry University'+
+            '    <br>Frederick Lanchester Building'+
+            '    <br>Gosford Street'+
+            '    <br>Coventry CV1 5DD'+
+            '    <br>United Kingdom'+
+            '</p>'+
+            '<p>For Floor Plans of the Frederick Lanchester Building (Libary) please click '+
+            '<a href="https://e69d75eefd8c8e844beb036b34a0e85a864b6261.googledrive.com/host/0B0F9nbWwbfrbR3lRZlIyZTNqMUE" target="_blank">'+
+            '<b>HERE</b></a> (opens link in new tab)</p>'+
+            '</div>'+
+            '</div>';
+		// This is what makes the information window	
+		var Libwindow = new google.maps.InfoWindow({
+          content: informationLibary
+        });
+		// This places the marker on the map at the chossen location
+		var markerLib = new google.maps.Marker({
+          position: Libary,
+          map: map,
+          title: 'Libary'
+        });
+		//This is listening for the click to open the information window
+        markerLib.addListener('click', function() {
+          Libwindow.open(map, markerLib);
+        }); 
+        
+        // This is called when the user changes a variable so the map can reload
+        var onChangeHandler = function() {
+          calculateAndDisplayRoute(directionsService, directionsDisplay);
+        };
+        document.getElementById('start').addEventListener('change', onChangeHandler);
+        document.getElementById('end').addEventListener('change', onChangeHandler);
+		document.getElementById('mode').addEventListener('change', onChangeHandler);
+		document.getElementById('unit').addEventListener('change', onChangeHandler);
+      }
+        
+     // This function forms the bulk of the Google Maps and Directions API as it sends the infromation
+     // to Google so that they can calculate the route to where the user wants to go
+     // Also it displays the directions of the route in the right pannel
+      function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+        var start = document.getElementById('start').value;
+        var end = document.getElementById('end').value;
+		var selectedMode = document.getElementById('mode').value;
+		var selectUnit = document.getElementById('unit').value;
+		if (start == "Current Location"){
+			start = myLatLng
+		}
+		if (end == "Current Location"){
+			end = myLatLng
+		}
+        directionsService.route({
+          origin: start,
+          destination: end,
+          travelMode: google.maps.TravelMode[selectedMode],
+          unitSystem: google.maps.UnitSystem[selectUnit]
+        }, function(response, status) {
+          if (status === google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+		
+	 
+      }
+    </script>
+	
+	<!--This Authenticates the Google Maps API-->
+      <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCl1C3ood5FAmeaPSVjVFTRlrj5plkzPg&callback=getLocation"
+  type="text/javascript"></script>
+  
+  </body>
+</html>

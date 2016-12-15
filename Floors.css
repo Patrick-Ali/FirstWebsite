@@ -1,0 +1,67 @@
+	html, body{
+			width: 100%;
+			height: 100%;
+		}
+		
+		#floors h4, h3{
+			text-align: center;
+		}
+		/* These are the click events that will be executed when the user clicks on the image
+		This means if this is checked find the sibling in the label and apply the following rule*/
+		#Mezzanine:checked ~ label #cover{
+			display:block;
+		}
+		
+		#LowerGroundFloor:checked ~ label #covered{
+			display:block;
+		}
+		
+		#GroundFloor:checked ~ label #covering{
+			display:block;
+		}
+		
+		#FirstFloor:checked ~ label #covers{
+			display:block;
+		}
+		
+		#SecondFloor:checked ~ label #covard{
+			display:block;
+		}
+		/*This adds the shadow which makes it stand out*/
+		#cover, #covered, #covard, #covering, #covers{
+			position:absolute;
+			top:0;
+			bottom:0;
+			left:0;
+			right:0;
+			background:rgba(0,0,0,0.5);
+			display:none;
+			width:100%;
+			z-index: 6;
+		}
+		/*This adds a nice white border around the enlarged image*/
+		#box, #boxed, #boxing, #boxe, #boxs{
+			position:absolute;
+			top:0;
+			bottom:0;
+			left:0;
+			right:0;
+			margin:auto;
+			width:650px;
+			height:650px;
+			border:10px solid white;
+			z-index: 5;
+		}
+		
+		#floors{
+			top:0px;
+			z-index: 2;
+			width:100%;
+			position:fixed;
+			margin-top: 13.5%;
+			margin-bottom:20%;
+			height:70%;
+			
+		}
+        
+		
